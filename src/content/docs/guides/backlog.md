@@ -1,3 +1,6 @@
+---
+title: Future Backlog
+---
 # Future Backlog - Extracted from Implementation Plan
 
 This document captures future work items that were outlined in the original implementation plan but haven't been implemented yet. These items should be considered for future sprints based on business priorities.

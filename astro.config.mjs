@@ -5,9 +5,6 @@ export default defineConfig({
 	integrations: [
 		starlight({
 			title: 'Panbot Documentation',
-			social: {
-				github: 'https://github.com/StellarChiron/panbot',
-			},
 			sidebar: [
 				{
 					label: 'Guides',

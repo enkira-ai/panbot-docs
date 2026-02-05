@@ -1,3 +1,6 @@
+---
+title: Architecture Design
+---
 # Restaurant Phone Agent System - Architecture Design Document
 
 ## 1. Executive Summary

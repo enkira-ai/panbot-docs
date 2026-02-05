@@ -1,5 +1,10 @@
+---
+title: Welcome to Panbot
+description: A production-ready restaurant phone assistant.
+---
+
 <div align="center">
-  <img src="panbot.jpg" alt="PanBot Logo" width="200"/>
+  <img src="/panbot.jpg" alt="PanBot Logo" width="200"/>
   
   # PanBot
 

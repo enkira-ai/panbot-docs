@@ -1,0 +1,42 @@
+name: Notify Assignee
+
+on:
+  issues:
+    types: [assigned]
+  pull_request:
+    types: [assigned]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Discord notification
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          ASSIGNEE_LOGIN: ${{ github.event.assignee.login }}
+        run: |
+          #!/usr/bin/env bash
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "DISCORD_WEBHOOK_URL secret not set, skipping."
+            exit 0
+          fi
+          
+          case "$ASSIGNEE_LOGIN" in
+            "stellar-chiron")
+              DISCORD_MENTION="<@1465458153830486207>"
+              ;;
+            "Stellar-Hogarthian")
+              DISCORD_MENTION="<@1468754252322181275>"
+              ;;
+            "captain-nemo-bot")
+              DISCORD_MENTION="<@1466806637195952393>"
+              ;;
+            *)
+              DISCORD_MENTION=""
+              ;;
+          esac
+          
+          if [ -n "$DISCORD_MENTION" ]; then
+            payload="{\"content\":\"🔔 $DISCORD_MENTION you have been assigned a new issue or PR. Please review.\"}"
+            curl -s -X POST -H "Content-Type: application/json" -d "$payload" "$DISCORD_WEBHOOK_URL"
+          fi

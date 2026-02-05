@@ -21,13 +21,15 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const issue_number = context.issue.number || context.payload.pull_request.number;
-            github.rest.issues.addAssignees({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: issue_number,
-              assignees: ['aegis-molt']
-            });
+            const issue_number = context.issue.number || (context.payload.pull_request ? context.payload.pull_request.number : null);
+            if (issue_number) {
+              github.rest.issues.addAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue_number,
+                assignees: ['aegis-molt']
+              });
+            }
 
       - name: Assign Testing to Captain Nemo
         if: |
@@ -40,13 +42,15 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const issue_number = context.issue.number || context.payload.pull_request.number;
-            github.rest.issues.addAssignees({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: issue_number,
-              assignees: ['captain-nemo-bot']
-            });
+            const issue_number = context.issue.number || (context.payload.pull_request ? context.payload.pull_request.number : null);
+            if (issue_number) {
+              github.rest.issues.addAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue_number,
+                assignees: ['captain-nemo-bot']
+              });
+            }
 
       - name: Assign Dev/Features to Stellar Chiron
         if: |
@@ -59,39 +63,49 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const issue_number = context.issue.number || context.payload.pull_request.number;
-            github.rest.issues.addAssignees({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: issue_number,
-              assignees: ['stellar-chiron']
-            });
+            const issue_number = context.issue.number || (context.payload.pull_request ? context.payload.pull_request.number : null);
+            if (issue_number) {
+              github.rest.issues.addAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue_number,
+                assignees: ['stellar-chiron']
+              });
+            }
 
-      - name: Assign Docs to Stellar Hogarthian
+      - name: Assign Docs and Reviews to Stellar Hogarthian
         if: |
           contains(github.event.issue.labels.*.name, 'documentation') || 
           contains(github.event.issue.labels.*.name, 'docs') ||
+          contains(github.event.issue.labels.*.name, 'doc') ||
+          contains(github.event.issue.labels.*.name, 'review') ||
           contains(github.event.pull_request.labels.*.name, 'documentation') ||
-          contains(github.event.pull_request.labels.*.name, 'docs')
+          contains(github.event.pull_request.labels.*.name, 'docs') ||
+          contains(github.event.pull_request.labels.*.name, 'doc') ||
+          contains(github.event.pull_request.labels.*.name, 'review')
         uses: actions/github-script@v7
         with:
           script: |
-            const issue_number = context.issue.number || context.payload.pull_request.number;
-            github.rest.issues.addAssignees({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: issue_number,
-              assignees: ['Stellar-Hogarthian']
-            });
+            const issue_number = context.issue.number || (context.payload.pull_request ? context.payload.pull_request.number : null);
+            if (issue_number) {
+              github.rest.issues.addAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue_number,
+                assignees: ['Stellar-Hogarthian']
+              });
+            }
 
       - name: Request PR Review from Stellar Hogarthian
         if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
         uses: actions/github-script@v7
         with:
           script: |
-            github.rest.pulls.requestReviewers({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number,
-              reviewers: ['Stellar-Hogarthian']
-            });
+            if (context.payload.pull_request) {
+              github.rest.pulls.requestReviewers({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.payload.pull_request.number,
+                reviewers: ['Stellar-Hogarthian']
+              });
+            }

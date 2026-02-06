@@ -1,0 +1,59 @@
+name: Notify CI Failure
+
+on:
+  workflow_run:
+    workflows: ["CI", "Docker Image CI", "Verify OpenAPI TypeScript Client"]
+    types: [completed]
+
+jobs:
+  notify:
+    if: ${{ github.event.workflow_run.conclusion != 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify and assign Aegis
+        uses: actions/github-script@v7
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+            if (run.event !== 'pull_request') {
+              core.info('Not a PR workflow_run, skipping assignment.');
+              return;
+            }
+
+            // Find PRs associated with the commit
+            const prs = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: run.head_sha,
+              per_page: 5
+            });
+
+            if (!prs.data || prs.data.length === 0) {
+              core.warning('No PRs associated with failed workflow run.');
+              return;
+            }
+
+            for (const pr of prs.data) {
+              // Assign Aegis
+              await github.rest.issues.addAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                assignees: ['aegis-molt']
+              });
+
+              // Notify on Discord
+              const webhook = process.env.DISCORD_WEBHOOK_URL;
+              if (webhook) {
+                const payload = {
+                  content: `❌ <@1467700916672266404> CI failed for PR #${pr.number}: **${pr.title}**\n${pr.html_url}\nWorkflow: ${run.name}`
+                };
+                await fetch(webhook, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(payload)
+                });
+              }
+            }

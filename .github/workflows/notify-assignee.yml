@@ -1,42 +1,46 @@
 name: Notify Assignee
 
-on:
+on: 
   issues:
     types: [assigned]
   pull_request:
     types: [assigned]
 
-jobs:
+jobs: 
   notify:
     runs-on: ubuntu-latest
     steps:
       - name: Send Discord notification
-        env:
+        env: 
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           ASSIGNEE_LOGIN: ${{ github.event.assignee.login }}
+          ITEM_URL: ${{ github.event.issue.html_url || github.event.pull_request.html_url }}
+          ITEM_TITLE: ${{ github.event.issue.title || github.event.pull_request.title }}
         run: |
-          #!/usr/bin/env bash
           if [ -z "$DISCORD_WEBHOOK_URL" ]; then
             echo "DISCORD_WEBHOOK_URL secret not set, skipping."
             exit 0
           fi
-          
+
           case "$ASSIGNEE_LOGIN" in
             "stellar-chiron")
-              DISCORD_MENTION="<@1465458153830486207>"
+              DISCORD_ID="1465458153830486207"
               ;;
             "Stellar-Hogarthian")
-              DISCORD_MENTION="<@1468754252322181275>"
+              DISCORD_ID="1468754252322181275"
               ;;
             "captain-nemo-bot")
-              DISCORD_MENTION="<@1466806637195952393>"
+              DISCORD_ID="1466806637195952393"
+              ;;
+            "aegis-molt")
+              DISCORD_ID="1467700916672266404"
               ;;
             *)
-              DISCORD_MENTION=""
+              DISCORD_ID=""
               ;;
           esac
-          
-          if [ -n "$DISCORD_MENTION" ]; then
-            payload="{\"content\":\"🔔 $DISCORD_MENTION you have been assigned a new issue or PR. Please review.\"}"
+
+          if [ -n "$DISCORD_ID" ]; then
+            payload="{\"content\":\"🔔 <@$DISCORD_ID> you have been assigned to: **$ITEM_TITLE**\n🔗 $ITEM_URL\"}"
             curl -s -X POST -H "Content-Type: application/json" -d "$payload" "$DISCORD_WEBHOOK_URL"
           fi

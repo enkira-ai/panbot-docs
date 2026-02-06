@@ -1,0 +1,25 @@
+name: Notify PR Merged
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    steps:
+      - name: Send Discord notification
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          MERGED_BY: ${{ github.event.pull_request.merged_by.login }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "DISCORD_WEBHOOK_URL secret not set, skipping."
+            exit 0
+          fi
+
+          payload="{\"content\":\"✅ PR Merged: **$PR_TITLE** by @$MERGED_BY\n🔗 $PR_URL\"}"
+          curl -s -X POST -H "Content-Type: application/json" -d "$payload" "$DISCORD_WEBHOOK_URL"

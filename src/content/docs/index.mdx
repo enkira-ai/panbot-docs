@@ -1,40 +1,38 @@
 ---
-title: Welcome to Starlight
-description: Get started building your docs site with Starlight.
-template: splash # Remove or comment out this line to display the site sidebar on this page.
+title: PanBot Documentation
+description: AI-powered restaurant phone assistant documentation.
+template: splash
 hero:
-  tagline: Congrats on setting up a new Starlight project!
-  image:
-    file: ../../assets/houston.webp
+  tagline: AI-powered restaurant phone assistant built with LiveKit Agents
   actions:
-    - text: Example Guide
-      link: /guides/example/
+    - text: Architecture Overview
+      link: /architecture/overview/
       icon: right-arrow
-    - text: Read the Starlight docs
-      link: https://starlight.astro.build
+    - text: Development Guide
+      link: /guides/development/
       icon: external
       variant: minimal
 ---
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
-## Next steps
+## Documentation Sections
 
 <CardGrid stagger>
-	<Card title="Update content" icon="pencil">
-		Edit `src/content/docs/index.mdx` to see this page change.
+	<Card title="Architecture" icon="setting">
+		System overview, data flows, multi-tenancy design, and integration plans.
 	</Card>
-	<Card title="Change page layout" icon="document">
-		Delete `template: splash` in `src/content/docs/index.mdx` to display a
-		sidebar on this page.
+	<Card title="Guides" icon="open-book">
+		Development setup, deployment, real-time integration, printer system, telephony agent, and testing.
 	</Card>
-	<Card title="Add new content" icon="add-document">
-		Add Markdown or MDX files to `src/content/docs` to create new pages.
-	</Card>
-	<Card title="Configure your site" icon="setting">
-		Edit your `sidebar` and other config in `astro.config.mjs`.
-	</Card>
-	<Card title="Read the docs" icon="open-book">
-		Learn more in [the Starlight Docs](https://starlight.astro.build/).
+	<Card title="Reference" icon="document">
+		Architecture design document, authentication system, and API reference.
 	</Card>
 </CardGrid>
+
+## Quick Links
+
+- **For coding agents**: Start with `architecture.md` (root) and `src/*/ARCHITECTURE.md` files
+- **For humans**: Browse this documentation site
+- **Sprint planning**: See `sprints/` directory in the repo
+- **Research notes**: See `dev_docs/` directory in the repo

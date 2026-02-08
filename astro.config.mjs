@@ -7,6 +7,10 @@ export default defineConfig({
 			title: 'Panbot Documentation',
 			sidebar: [
 				{
+					label: 'Architecture',
+					autogenerate: { directory: 'architecture' },
+				},
+				{
 					label: 'Guides',
 					autogenerate: { directory: 'guides' },
 				},

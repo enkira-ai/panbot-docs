@@ -52,7 +52,7 @@ This tells Logto about PanBot's backend API so it can issue access tokens for it
 
 1. Go to **API Resources** → **Create API resource**
 2. **Name**: `PanBot Backend API`
-3. **API Identifier**: `https://api.panbot.ai` (use your actual API domain — this is a logical identifier, not a URL that Logto calls)
+3. **API Identifier**: `https://api.novaserve.ai` (use your actual API domain — this is a logical identifier, not a URL that Logto calls)
 4. Add permissions in the **Permissions** tab:
 
 | Permission | Description |
@@ -129,7 +129,7 @@ For faster setup, use the provided automation script that configures everything 
 
 The script creates:
 - Web dashboard application with configured redirect URIs
-- API resource (`https://api.panbot.ai`) with permissions
+- API resource (`https://api.novaserve.ai`) with permissions
 - RBAC roles (staff, owner, admin)
 - Social connectors (Google, Facebook, Microsoft, Apple, LinkedIn, WeChat)
 
@@ -269,7 +269,7 @@ LOGTO_APP_ID=<your-app-id>
 LOGTO_APP_SECRET=<your-app-secret>
 LOGTO_COOKIE_SECRET=<random-string-min-32-chars>
 LOGTO_BASE_URL=http://localhost:3000
-LOGTO_API_RESOURCE=https://api.panbot.ai
+LOGTO_API_RESOURCE=https://api.novaserve.ai
 ```
 
 Generate the cookie secret:
@@ -327,7 +327,7 @@ For backend services (scrapers, workers, scheduled jobs) that call PanBot APIs w
 curl -X POST https://<tenant>.logto.app/oidc/token \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -H "Authorization: Basic $(echo -n 'APP_ID:APP_SECRET' | base64)" \
-  -d "grant_type=client_credentials&resource=https://api.panbot.ai&scope=read:orders write:orders"
+  -d "grant_type=client_credentials&resource=https://api.novaserve.ai&scope=read:orders write:orders"
 ```
 
 Cache the returned token (valid for ~1 hour) and refresh before expiry.

@@ -123,6 +123,6 @@ Set in Infisical:
 
 ## Further Reading
 
-- [`README_ci_cd.md`](https://github.com/StellarChiron/panbot/blob/main/README_ci_cd.md) — Full CI/CD reference with Makefile details
+- `README_ci_cd.md` — Full CI/CD reference (available in the feature branch; if missing on main, use dev_docs below)
 - [`dev_docs/infisical_migration_guide.md`](https://github.com/StellarChiron/panbot/blob/main/dev_docs/infisical_migration_guide.md) — Infisical setup, troubleshooting, migration history
 - [`dev_docs/cloud_deployment_architecture.md`](https://github.com/StellarChiron/panbot/blob/main/dev_docs/cloud_deployment_architecture.md) — Resource sizing and scaling

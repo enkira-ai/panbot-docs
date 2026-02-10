@@ -16,6 +16,12 @@ description: Current and planned authentication architecture.
 | Token revocation | `users.token_version` field |
 | DB validation | Optional via `AUTH_VALIDATE_DB_ON_REQUEST` flag |
 
+### Current State: Hybrid Multi-Tenant Auth
+
+- JWTs are evolving toward a `business_ids` list for forward compatibility.
+- Database **still stores a single** `business_id` (UserBusinessDB migration is pending).
+- Expect mixed usage until Issue #29 is completed.
+
 ### Desktop App
 
 | Feature | Implementation |

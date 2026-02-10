@@ -98,7 +98,21 @@ APIs and agents never access the database directly; they go through the services
 All data is scoped by `business_id`. JWT tokens carry claim-based authorization (no DB lookups per request). Restaurant detection on incoming calls uses SIP headers: `sip.h.diversion` in production (forwarded calls), `sip.h.to` in development.
 
 ### Environment System
-Tenant-based env files: `dev.env` (default), `prod.env`, `staging.env`. Pass `tenant=name` to make targets to use `{name}.env`. Desktop app has its own env files in `apps/desktop/`.
+
+:::tip[Infisical First]
+The **canonical** workflow is `make sync-env` (Infisical → `.env`) and centralized loading via `src/common/config.py:auto_load_environment_file()`.
+Legacy `dev.env` / `prod.env` files are still supported, but are **not** the primary path.
+:::
+
+`config.py` auto-load precedence (when `APP_NAME` + `ENVIRONMENT` are not already set):
+1. `{TENANT}.env` (if `TENANT` is set)
+2. `prod.env`
+3. `dev.env`
+4. `.env` (legacy fallback)
+
+Note: `make sync-env` produces `.env` for local use; production deploys typically set `APP_NAME` + `ENVIRONMENT` to skip auto-load.
+
+Desktop app has its own env files in `apps/desktop/`.
 
 ### Real-time Communication
 Centrifugo handles WebSocket push to connected clients. Namespace constants are auto-generated from `infrastructure/centrifugo/config.json` via `scripts/generate_centrifugo_namespaces.py`.

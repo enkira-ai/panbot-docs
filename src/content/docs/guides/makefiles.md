@@ -7,7 +7,12 @@ Perfect! Your Makefile is ready to streamline your development and deployment wo
 
 ## 🌟 **Multi-Tenant Environment System**
 
-The Makefile uses a clean tenant-based environment system with `[tenant].env` files:
+:::tip[Infisical First]
+The **canonical** workflow is `make sync-env` (Infisical → `.env`) and centralized loading via `src/common/config.py:auto_load_environment_file()`.
+Legacy `dev.env` / `prod.env` files are still supported, but are **not** the primary path.
+:::
+
+The Makefile uses a tenant-based environment system with `[tenant].env` files:
 
 ```bash
 # Default development environment (uses dev.env)
@@ -38,11 +43,20 @@ panbot/
 
 ## 🚀 Quick Start
 
-### 1. **Set up your backend environment files:**
+### 1. **Sync secrets from Infisical (preferred):**
+```bash
+# Backend (dev) → .env
+make sync-env
+
+# Backend (prod) → .env
+make sync-env tenant=prod
+```
+
+### 2. **Legacy local env files (not recommended):**
 ```bash
 # Copy the example for each environment
 cp env.example dev.env       # Development (default)
-cp env.example prod.env      # Production  
+cp env.example prod.env      # Production
 cp env.example staging.env   # Staging (optional)
 
 # Edit each file with environment-specific credentials:

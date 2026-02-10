@@ -3,6 +3,11 @@ title: Authentication with Logto
 description: How to set up Logto Cloud as PanBot's identity provider with social login (Google, Facebook, Microsoft, Apple).
 ---
 
+:::caution[🚧 Planned / Target State]
+Logto integration is **planned** (see Issue #30) and not fully implemented in the codebase yet. Use this guide as a target-state reference.
+Current production auth uses **fastapi-users JWT**.
+:::
+
 PanBot uses [Logto](https://logto.io) as its OIDC identity provider. This guide covers setting up Logto Cloud, configuring social login connectors, and connecting everything to the PanBot backend and web dashboard.
 
 ## Prerequisites

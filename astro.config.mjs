@@ -2,8 +2,13 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 
 export default defineConfig({
-	site: 'https://stellarchiron.github.io',
-	base: '/panbot-docs/',
+	site: process.env.SITE_URL || 'https://stellarchiron.github.io',
+	base: process.env.BASE_PATH || '/panbot-docs/',
+	vite: {
+		server: {
+			allowedHosts: ['docs.panbot.ai'],
+		},
+	},
 	integrations: [
 		starlight({
 			title: 'Panbot Documentation',

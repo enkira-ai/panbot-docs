@@ -1,0 +1,445 @@
+---
+/**
+ * Lunr.js full-text search component for Starlight.
+ *
+ * Loads a pre-built Lunr index at runtime and renders results in a modal
+ * with highlighting, snippets, and category faceting per the search spec (#4).
+ */
+
+// Resolve base path for asset URLs
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<site-search data-base={base}>
+  <button data-open-modal aria-label="Search" title="Search (Ctrl+K)">
+    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"></circle>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </svg>
+    <span class="search-label">Search</span>
+    <kbd>Ctrl+K</kbd>
+  </button>
+
+  <dialog aria-label="Search documentation">
+    <div class="search-dialog-inner">
+      <div class="search-input-row">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="search" id="lunr-search-input" placeholder="Search docs..." autocomplete="off" />
+        <kbd data-close-modal>Esc</kbd>
+      </div>
+      <div class="search-filters" role="group" aria-label="Category filters">
+        <button class="filter-btn active" data-category="all">All</button>
+      </div>
+      <div class="search-results" role="listbox" aria-label="Search results"></div>
+      <div class="search-footer">
+        <span><kbd>&uarr;</kbd><kbd>&darr;</kbd> Navigate</span>
+        <span><kbd>Enter</kbd> Open</span>
+        <span><kbd>Esc</kbd> Close</span>
+      </div>
+    </div>
+  </dialog>
+</site-search>
+
+<style>
+  site-search {
+    display: contents;
+  }
+  button[data-open-modal] {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid var(--sl-color-gray-5, #444);
+    border-radius: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    background: var(--sl-color-bg-nav, transparent);
+    color: var(--sl-color-gray-2, #ccc);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: border-color 0.15s;
+  }
+  button[data-open-modal]:hover {
+    border-color: var(--sl-color-accent, #7c3aed);
+  }
+  button[data-open-modal] kbd {
+    font-size: 0.7rem;
+    border: 1px solid var(--sl-color-gray-5, #555);
+    border-radius: 0.25rem;
+    padding: 0.1rem 0.35rem;
+    margin-left: 0.25rem;
+  }
+  dialog {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
+    background: transparent;
+    border: none;
+  }
+  dialog::backdrop {
+    background: rgba(0, 0, 0, 0.6);
+  }
+  .search-dialog-inner {
+    margin: 8vh auto;
+    width: min(94vw, 640px);
+    max-height: 75vh;
+    background: var(--sl-color-bg, #1a1a2e);
+    border: 1px solid var(--sl-color-gray-5, #333);
+    border-radius: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+  }
+  .search-input-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--sl-color-gray-5, #333);
+  }
+  .search-input-row svg {
+    flex-shrink: 0;
+    color: var(--sl-color-gray-3, #999);
+  }
+  .search-input-row input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--sl-color-white, #eee);
+    font-size: 1rem;
+  }
+  .search-input-row input::placeholder {
+    color: var(--sl-color-gray-3, #888);
+  }
+  .search-input-row kbd {
+    font-size: 0.7rem;
+    border: 1px solid var(--sl-color-gray-5, #555);
+    border-radius: 0.25rem;
+    padding: 0.15rem 0.4rem;
+    color: var(--sl-color-gray-3, #999);
+    cursor: pointer;
+  }
+  .search-filters {
+    display: flex;
+    gap: 0.35rem;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--sl-color-gray-6, #222);
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 1rem;
+    border: 1px solid var(--sl-color-gray-5, #444);
+    background: transparent;
+    color: var(--sl-color-gray-2, #bbb);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-btn.active {
+    background: var(--sl-color-accent, #7c3aed);
+    border-color: var(--sl-color-accent, #7c3aed);
+    color: #fff;
+  }
+  .search-results {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.5rem;
+    min-height: 100px;
+  }
+  .search-results:empty::after {
+    content: 'Type to search documentation...';
+    display: block;
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--sl-color-gray-3, #888);
+    font-size: 0.9rem;
+  }
+  .search-results .no-results {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--sl-color-gray-3, #888);
+    font-size: 0.9rem;
+  }
+  .search-result {
+    display: block;
+    padding: 0.6rem 0.8rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    color: var(--sl-color-white, #eee);
+    transition: background 0.1s;
+  }
+  .search-result:hover,
+  .search-result[aria-selected="true"] {
+    background: var(--sl-color-gray-6, #252538);
+  }
+  .search-result .result-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.2rem;
+  }
+  .search-result .result-category {
+    display: inline-block;
+    font-size: 0.65rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.25rem;
+    background: var(--sl-color-gray-5, #333);
+    color: var(--sl-color-gray-2, #bbb);
+    margin-left: 0.4rem;
+    vertical-align: middle;
+  }
+  .search-result .result-snippet {
+    font-size: 0.8rem;
+    color: var(--sl-color-gray-3, #999);
+    line-height: 1.4;
+    margin-top: 0.15rem;
+  }
+  .search-result mark {
+    background: rgba(124, 58, 237, 0.3);
+    color: inherit;
+    border-radius: 2px;
+    padding: 0 1px;
+  }
+  .search-footer {
+    display: flex;
+    gap: 1rem;
+    padding: 0.5rem 1rem;
+    border-top: 1px solid var(--sl-color-gray-5, #333);
+    font-size: 0.7rem;
+    color: var(--sl-color-gray-3, #888);
+  }
+  .search-footer kbd {
+    border: 1px solid var(--sl-color-gray-5, #555);
+    border-radius: 0.2rem;
+    padding: 0 0.3rem;
+    font-size: 0.65rem;
+  }
+  @media (max-width: 640px) {
+    .search-label { display: none; }
+    button[data-open-modal] kbd { display: none; }
+  }
+</style>
+
+<script>
+  // Astro bundles this via Vite — lunr is tree-shaken from node_modules
+  import lunr from 'lunr';
+
+  class SiteSearch {
+    private lunrIndex: lunr.Index | null = null;
+    private docsMeta: Array<{slug: string; title: string; category: string; snippet: string}> | null = null;
+    private activeCategory = 'all';
+    private selectedIdx = -1;
+    private loadPromise: Promise<void> | null = null;
+
+    private el: Element;
+    private dialog: HTMLDialogElement;
+    private input: HTMLInputElement;
+    private base: string;
+
+    constructor(el: Element) {
+      this.el = el;
+      this.base = el.getAttribute('data-base') || '';
+      this.dialog = el.querySelector('dialog')!;
+      this.input = el.querySelector('#lunr-search-input')!;
+      this.bind();
+    }
+
+    /** Lazily fetch and deserialise the pre-built Lunr index */
+    private loadIndex(): Promise<void> {
+      if (this.loadPromise) return this.loadPromise;
+      this.loadPromise = Promise.all([
+        fetch(`${this.base}/search-index.json`).then((r) => r.json()),
+        fetch(`${this.base}/search-docs.json`).then((r) => r.json()),
+      ]).then(([idxData, meta]) => {
+        this.lunrIndex = lunr.Index.load(idxData);
+        this.docsMeta = meta;
+        this.populateFilters(meta);
+      });
+      return this.loadPromise;
+    }
+
+    /** Build category filter buttons from indexed doc metadata */
+    private populateFilters(meta: Array<{category: string}>) {
+      const cats = [...new Set(meta.map((d) => d.category))].sort();
+      const filtersEl = this.el.querySelector('.search-filters');
+      if (!filtersEl) return;
+      for (const cat of cats) {
+        const btn = document.createElement('button');
+        btn.className = 'filter-btn';
+        btn.dataset.category = cat;
+        btn.textContent = cat;
+        filtersEl.appendChild(btn);
+      }
+    }
+
+    /** Highlight matched terms in text */
+    private highlight(text: string, terms: string[]): string {
+      if (!terms.length) return text;
+      const escaped = terms.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+      const re = new RegExp(`(${escaped.join('|')})`, 'gi');
+      return text.replace(re, '<mark>$1</mark>');
+    }
+
+    /** Create a context snippet around the first matched term */
+    private createSnippet(body: string, terms: string[]): string {
+      if (!terms.length) return body.slice(0, 160);
+      const lower = body.toLowerCase();
+      let earliest = body.length;
+      for (const t of terms) {
+        const pos = lower.indexOf(t.toLowerCase());
+        if (pos >= 0 && pos < earliest) earliest = pos;
+      }
+      const start = Math.max(0, earliest - 60);
+      const end = Math.min(body.length, earliest + 140);
+      let snippet = body.slice(start, end).replace(/\n+/g, ' ');
+      if (start > 0) snippet = '...' + snippet;
+      if (end < body.length) snippet += '...';
+      return snippet;
+    }
+
+    /** Run the search and render results */
+    private doSearch(query: string) {
+      const resultsEl = this.el.querySelector('.search-results');
+      if (!resultsEl || !this.lunrIndex || !this.docsMeta) return;
+
+      this.selectedIdx = -1;
+
+      if (!query.trim()) {
+        resultsEl.innerHTML = '';
+        return;
+      }
+
+      let results: lunr.Index.Result[];
+      try {
+        results = this.lunrIndex.search(query);
+      } catch {
+        try {
+          results = this.lunrIndex.search(query.replace(/[^a-zA-Z0-9\s]/g, ''));
+        } catch {
+          results = [];
+        }
+      }
+
+      // Category filter
+      if (this.activeCategory !== 'all') {
+        results = results.filter((r) => {
+          const doc = this.docsMeta!.find((d) => d.slug === r.ref);
+          return doc && doc.category === this.activeCategory;
+        });
+      }
+
+      if (results.length === 0) {
+        resultsEl.innerHTML = '<div class="no-results">No results found</div>';
+        console.info('[search:zero-results]', query);
+        return;
+      }
+
+      const terms = query.trim().split(/\s+/).filter(Boolean);
+
+      resultsEl.innerHTML = results
+        .slice(0, 20)
+        .map((r) => {
+          const doc = this.docsMeta!.find((d) => d.slug === r.ref);
+          if (!doc) return '';
+          const snippet = this.createSnippet(doc.snippet, terms);
+          return `<a class="search-result" href="${this.base}/${doc.slug}" role="option">
+            <div class="result-title">${this.highlight(doc.title, terms)}<span class="result-category">${doc.category}</span></div>
+            <div class="result-snippet">${this.highlight(snippet, terms)}</div>
+          </a>`;
+        })
+        .join('');
+    }
+
+    private openModal() {
+      this.loadIndex().then(() => {
+        this.dialog.showModal();
+        this.input.focus();
+      });
+    }
+
+    private closeModal() {
+      this.dialog.close();
+      this.input.value = '';
+      const resultsEl = this.el.querySelector('.search-results');
+      if (resultsEl) resultsEl.innerHTML = '';
+    }
+
+    private updateSelection(items: NodeListOf<Element>) {
+      items.forEach((item, i) => {
+        item.setAttribute('aria-selected', i === this.selectedIdx ? 'true' : 'false');
+        if (i === this.selectedIdx) item.scrollIntoView({ block: 'nearest' });
+      });
+    }
+
+    private bind() {
+      // Open button
+      this.el.querySelector('[data-open-modal]')?.addEventListener('click', () => this.openModal());
+
+      // Close button
+      this.el.querySelector('[data-close-modal]')?.addEventListener('click', () => this.closeModal());
+
+      // Backdrop click
+      this.dialog.addEventListener('click', (e) => {
+        if (e.target === this.dialog) this.closeModal();
+      });
+
+      // Ctrl+K / Cmd+K global shortcut
+      document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+          e.preventDefault();
+          this.dialog.open ? this.closeModal() : this.openModal();
+        }
+      });
+
+      // Debounced search input
+      let timer: ReturnType<typeof setTimeout>;
+      this.input.addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => this.doSearch(this.input.value), 150);
+      });
+
+      // Arrow-key navigation & Enter to open
+      this.input.addEventListener('keydown', (e) => {
+        const items = this.el.querySelectorAll('.search-result');
+        if (!items.length) return;
+
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          this.selectedIdx = Math.min(this.selectedIdx + 1, items.length - 1);
+          this.updateSelection(items);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          this.selectedIdx = Math.max(this.selectedIdx - 1, 0);
+          this.updateSelection(items);
+        } else if (e.key === 'Enter' && this.selectedIdx >= 0) {
+          e.preventDefault();
+          (items[this.selectedIdx] as HTMLAnchorElement)?.click();
+        }
+      });
+
+      // Category filter clicks (delegated)
+      this.el.addEventListener('click', (e) => {
+        const btn = (e.target as Element).closest('.filter-btn');
+        if (!btn || !(btn instanceof HTMLElement)) return;
+        this.activeCategory = btn.dataset.category || 'all';
+        this.el.querySelectorAll('.filter-btn').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (this.input.value) this.doSearch(this.input.value);
+      });
+    }
+  }
+
+  // Initialise on every page (Astro view-transitions compatible)
+  function init() {
+    const el = document.querySelector('site-search');
+    if (el) new SiteSearch(el);
+  }
+  init();
+  document.addEventListener('astro:after-swap', init);
+</script>

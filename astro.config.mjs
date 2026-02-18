@@ -12,6 +12,11 @@ export default defineConfig({
 	integrations: [
 		starlight({
 			title: 'Panbot Documentation',
+			// Disable built-in Pagefind search — replaced by Lunr.js
+			pagefind: false,
+			components: {
+				Header: './src/overrides/Header.astro',
+			},
 			sidebar: [
 				{
 					label: 'Architecture',

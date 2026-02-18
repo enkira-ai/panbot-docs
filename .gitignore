@@ -2,6 +2,9 @@
 dist/
 # generated types
 .astro/
+# generated search index (built from scripts/build-search-index.mjs)
+public/search-index.json
+public/search-docs.json
 
 # dependencies
 node_modules/

@@ -1,0 +1,36 @@
+---
+/**
+ * Custom Starlight Header override that adds Lunr.js search alongside
+ * the default header. Replaces Starlight's built-in Pagefind search.
+ */
+import type { Props } from '@astrojs/starlight/props';
+import Default from '@astrojs/starlight/components/Header.astro';
+import Search from '../components/Search.astro';
+---
+
+<div class="header-with-search">
+  <Default {...Astro.props}><slot /></Default>
+  <div class="lunr-search-slot">
+    <Search />
+  </div>
+</div>
+
+<style>
+  .header-with-search {
+    display: contents;
+  }
+  .lunr-search-slot {
+    position: fixed;
+    top: 0;
+    right: 1rem;
+    height: var(--sl-nav-height, 3.5rem);
+    display: flex;
+    align-items: center;
+    z-index: 10;
+  }
+  @media (max-width: 640px) {
+    .lunr-search-slot {
+      right: 0.5rem;
+    }
+  }
+</style>

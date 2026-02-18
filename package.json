@@ -5,13 +5,15 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build",
+    "build:search": "node scripts/build-search-index.mjs",
+    "build": "node scripts/build-search-index.mjs && astro build",
     "preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.37.6",
     "astro": "^5.6.1",
+    "lunr": "^2.3.9",
     "sharp": "^0.34.2"
   }
 }

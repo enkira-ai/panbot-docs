@@ -15,13 +15,14 @@ We will use `docusaurus-search-local` (based on Lunr.js) to provide a self-hoste
 - **Indexing:** Automated indexing of all `.md` and `.mdx` files in `docs/` and `blog/`.
 - **UI:** Standard Docusaurus search bar positioned in the **top-right** of the navbar.
 - **Filtering:** Implementation of category/repository tags in the index to allow faceted search.
+- **Analytics Bridge:** A custom React hook will intercept zero-result events from the Lunr index and `POST` them to `/api/v1/docs/search-metrics` (managed by the internal dashboard backend).
 
 ## 3. Requirements
 
 ### Functional:
 - [ ] **Keyword Search:** High-relevance matching for single and multi-word queries.
 - [ ] **Highlighting:** Visual highlighting of search terms in the results snippets.
-- [ ] **Faceted Filtering:** Ability to filter results by category (e.g., Architecture, API, Research).
+- [ ] **Faceted Filtering:** Ability to filter results by category (e.g., Architecture, API, Research) based on **directory-level tagging**.
 - [ ] **Low Latency:** Average search response time <= 1 second.
 
 ### Analytics & Observability:

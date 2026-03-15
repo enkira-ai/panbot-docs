@@ -7,24 +7,32 @@ description: How PanBot isolates data and operations per business.
 
 Every operational entity in PanBot is scoped by `business_id`. A single `businesses` table row represents one operational location.
 
-## Current State
+## Current State (Post Sprint 21)
 
 | Aspect | Implementation | Status |
 |--------|---------------|--------|
 | Data isolation | All queries filtered by `business_id` | Working |
-| JWT claims | `business_id`, `role`, `permissions` in token | Working |
+| JWT claims | `user_id`, `role`, `primary_business_id`, `permissions` | Working |
 | Phone routing | SIP headers → business lookup | Working |
-| User-business mapping | `UserDB.business_id` (single business) | Needs migration |
-| Role per business | Global role only | Needs migration |
+| User-business mapping | `UserBusinessDB` join table (many-to-many) | Working |
+| Role per business | `UserBusinessDB.role` per business | Working |
+| Business selection | Post-login business picker (web dashboard) | Working |
+| Auth | FastAPI-Users JWT + Logto OIDC (web) | Working |
 
-## Target State (Sprint 21)
+### UserBusinessDB
 
-| Aspect | Implementation | Status |
-|--------|---------------|--------|
-| User-business mapping | `UserBusinessDB` join table (one-to-many) | Planned (#29) |
-| Role per business | `UserBusinessDB.role` per business | Planned (#29) |
-| Business selection | Post-login business picker | Planned (#31) |
-| Logto IAM | Unified OAuth with social login | Planned (#30) |
+```python
+class UserBusinessDB(BaseDBModel, table=True):
+    user_id: uuid.UUID       # FK → users.id
+    business_id: uuid.UUID   # FK → businesses.id
+    role: UserRole           # Per-business role (STAFF/OWNER/ADMIN)
+    permissions: List[str]   # Per-business permissions (JSONB)
+    is_primary: bool         # For business selection UI
+```
+
+- `UserDB.business_id` has been **removed** — all business access resolved via `UserBusinessDB`
+- `require_business_access()` checks `UserBusinessDB` membership; owner/admin bypass
+- `GET /businesses/accessible` returns all businesses a user has access to
 
 ## Roles
 

@@ -3,9 +3,14 @@ title: Authentication with Logto
 description: How to set up Logto Cloud as PanBot's identity provider with social login (Google, Facebook, Microsoft, Apple).
 ---
 
-:::caution[🚧 Planned / Target State]
-Logto integration is **planned** (see Issue #30) and not fully implemented in the codebase yet. Use this guide as a target-state reference.
-Current production auth uses **fastapi-users JWT**.
+:::note[Implementation Status]
+Logto OIDC is **partially implemented** as of Sprint 21:
+- **Backend**: `src/auth/oidc.py` with JWKS token validation, `/auth/oidc/callback` and `/auth/oidc/webhook` endpoints — **implemented** (PR #43)
+- **Web dashboard**: Logto SDK replaces NextAuth, business selection screen — **implemented** (panbot-web PR #3)
+- **Desktop app**: Still uses direct JWT login (Logto SDK migration is planned)
+- **Logto Cloud instance**: Needs to be deployed and configured (see setup steps below)
+
+Production auth remains **fastapi-users JWT** for the desktop app. The web dashboard uses Logto OIDC when a Logto instance is configured.
 :::
 
 PanBot uses [Logto](https://logto.io) as its OIDC identity provider. This guide covers setting up Logto Cloud, configuring social login connectors, and connecting everything to the PanBot backend and web dashboard.
@@ -100,7 +105,7 @@ For faster setup, use the provided automation script that configures everything 
    - Go to **Authorization** → **Roles** → Assign **"Logto Management API access"** role
    - Copy the **App ID** and **App Secret**
 
-3. **Get OAuth credentials** from each social provider you want to enable. See the [OAuth Credentials Guide](https://github.com/StellarChiron/panbot/blob/main/dev_docs/oauth_credentials_guide.md) for detailed steps:
+3. **Get OAuth credentials** from each social provider you want to enable. See the [OAuth Credentials Guide](https://github.com/enkira-ai/panbot/blob/main/dev_docs/oauth_credentials_guide.md) for detailed steps:
    - Google → Client ID + Client Secret
    - Facebook → App ID + App Secret
    - Microsoft → Client ID + Client Secret + Tenant ID

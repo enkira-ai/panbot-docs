@@ -86,7 +86,7 @@ APIs and agents never access the database directly; they go through the services
 
 **`src/models/`** - `database.py` has SQLModel ORM models (table=True), `api.py` has Pydantic request/response models. Keep these separate.
 
-**`src/common/`** - Shared infrastructure: `config.py` (settings), `database.py` (DB connection), `cache.py` (Redis), `event_bus.py` (Kafka/MQTT events), `centrifugo.py` (WebSocket push).
+**`src/common/`** - Shared infrastructure: `config.py` (settings), `database.py` (DB connection), `cache.py` (Redis), `events.py` / `event_bus.py` (EventDB audit logging + Centrifugo real-time publishing), `centrifugo.py` (WebSocket push).
 
 **`src/workers/`** - Background workers. `scraper_worker.py` handles restaurant data scraping with Playwright.
 
@@ -142,6 +142,6 @@ await events.event_publisher.publish(event_type="order.created", ...)
 - **Langfuse**: LLM observability (via OpenTelemetry)
 
 ## Key Reference Docs
-- `architecture_design_doc.md` - Full system architecture and data models
+- `project-docs/architecture.md` - Full system architecture and data models
 - `sprints/` - Current sprint plans and tasks
 - `prompts/` - AI prompt templates and versions

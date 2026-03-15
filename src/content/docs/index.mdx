@@ -3,18 +3,29 @@ title: PanBot Documentation
 description: AI-powered restaurant phone assistant documentation.
 template: splash
 hero:
-  tagline: AI-powered restaurant phone assistant built with LiveKit Agents
+  tagline: AI-powered restaurant phone assistant built with LiveKit Agents, Deepgram STT, gpt-4.1-mini, and Cartesia TTS
   actions:
-    - text: Architecture Overview
-      link: ./architecture/overview/
+    - text: Getting Started
+      link: ./guides/environments/
       icon: right-arrow
-    - text: Development Guide
-      link: ./guides/development/
+    - text: Architecture
+      link: ./architecture/overview/
       icon: external
       variant: minimal
 ---
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## New Here?
+
+If you're joining the team, start with these in order:
+
+1. **[System Overview](./architecture/overview/)** — Understand the components and how they connect (10 min)
+2. **[Environment Setup](./guides/environments/)** — Get your local dev environment running (30 min)
+3. **[Development Guide](./guides/development/)** — Commands, code patterns, and architecture rules (15 min)
+4. **[Telephony Agent](./guides/telephony-agent/)** — How the voice AI works (10 min)
+
+Also see `ONBOARDING.md` in the repo root for a quick-reference cheat sheet.
 
 ## Documentation Sections
 
@@ -23,16 +34,17 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 		System overview, data flows, multi-tenancy design, and integration plans.
 	</Card>
 	<Card title="Guides" icon="open-book">
-		Development setup, deployment, real-time integration, printer system, telephony agent, and testing.
+		Development setup, deployment, CI/CD, real-time integration, printer system, telephony agent, auth, and testing.
 	</Card>
 	<Card title="Reference" icon="document">
-		Architecture design document, authentication system, and API reference.
+		Architecture design document and authentication system reference.
 	</Card>
 </CardGrid>
 
 ## Quick Links
 
-- **For coding agents**: Start with `architecture.md` (root) and `src/*/ARCHITECTURE.md` files
-- **For humans**: Browse this documentation site
-- **Sprint planning**: See `sprints/` directory in the repo
-- **Research notes**: See `dev_docs/` directory in the repo
+- **Architecture deep dive**: `project-docs/architecture.md` in the repo (single source of truth)
+- **Per-component docs**: `src/*/ARCHITECTURE.md` files in the repo
+- **Sprint planning**: `sprints/` directory (current sprint docs)
+- **Research notes**: `dev_docs/` directory (active research and implementation guides)
+- **Historical docs**: `archive/` directory (completed sprints, early planning, outdated research)

@@ -11,7 +11,7 @@ PanBot is an AI-powered restaurant phone assistant handling SIP calls via Telnyx
 |-----------|-----------|---------|
 | API Server | FastAPI (Python) | REST endpoints, auth, business logic |
 | Telephony Agent | LiveKit + Python | Voice AI for phone calls |
-| Web Dashboard | Next.js 16 + React 19 | Owner/admin management UI |
+| Web Dashboard | Next.js 15 + React 19 | Owner/admin management UI |
 | Desktop App | React 19 + Tauri 2 (Rust) | Restaurant staff operations + printing |
 | Real-time | Centrifugo v6 | WebSocket push notifications |
 | Database | PostgreSQL 15+ | Primary data store |
@@ -52,11 +52,11 @@ All data is scoped by `business_id`. JWT tokens carry claim-based authorization 
 
 | Aspect | Web Dashboard | Desktop App |
 |--------|--------------|-------------|
-| Framework | Next.js 16 + React 19 | Vite 7 + React 19 + Tauri 2 |
+| Framework | Next.js 15 + React 19 | Vite 7 + React 19 + Tauri 2 |
 | API Client | Custom fetch-based | Shared OpenAPI Axios client |
 | UI Components | shadcn/ui (Radix) | Custom component library |
-| Auth | NextAuth v5 (OAuth) | Direct JWT + localStorage |
-| Real-time | Not yet connected | Centrifugo WebSocket |
+| Auth | Logto SDK (OAuth/OIDC) | Direct JWT + localStorage + Device PIN |
+| Real-time | Centrifugo WebSocket (Sprint 21) | Centrifugo WebSocket |
 | Printing | N/A | Tauri Rust backend (ESC/POS + IPP) |
 
-See [apps/web/ARCHITECTURE.md](https://github.com/StellarChiron/panbot/blob/main/apps/web/ARCHITECTURE.md) and [apps/desktop/ARCHITECTURE.md](https://github.com/StellarChiron/panbot/blob/main/apps/desktop/ARCHITECTURE.md) for detailed frontend architecture.
+See [apps/web/ARCHITECTURE.md](https://github.com/enkira-ai/panbot/blob/dev/apps/web/ARCHITECTURE.md) and [apps/desktop/ARCHITECTURE.md](https://github.com/enkira-ai/panbot/blob/dev/apps/desktop/ARCHITECTURE.md) for detailed frontend architecture.

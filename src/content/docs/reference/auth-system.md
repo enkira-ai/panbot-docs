@@ -1,29 +1,41 @@
 ---
 title: Authentication System
-description: Current and planned authentication architecture.
+description: Current authentication architecture for PanBot.
 ---
 
-## Current State
+## Overview
 
-### Backend (FastAPI)
+PanBot uses a **hybrid auth system**: FastAPI-Users JWT for the backend core, Logto OIDC for the web dashboard, and device + PIN auth for the desktop app. All auth is claim-first (no DB lookups per request).
+
+## Backend (FastAPI)
 
 | Feature | Implementation |
 |---------|---------------|
 | Auth library | fastapi-users |
 | Token type | JWT (access + refresh) |
-| Claims | `user_id`, `business_id`, `role`, `permissions` |
+| Claims | `user_id`, `primary_business_id`, `role`, `permissions` |
 | Validation | Claim-first (no DB lookup per request) |
 | Token revocation | `users.token_version` field |
 | DB validation | Optional via `AUTH_VALIDATE_DB_ON_REQUEST` flag |
+| OIDC | Logto token validation via `src/auth/oidc.py` |
 
-### Multi-Tenant Auth (UserBusinessDB)
+### Auth Dependencies
 
-- `UserBusinessDB` is the source of truth for user-to-business mappings.
-- `UserDB.business_id` column has been **removed** — all business access is resolved via `UserBusinessDB`.
-- `get_current_user()` returns both `business_id` (primary) and `business_ids` (all accessible).
-- Realtime/Centrifugo token requests check against the full `business_ids` list.
+| Dependency | Behavior |
+|------------|----------|
+| `get_current_user()` | Wraps fastapi-users, returns `business_id` (primary) and `business_ids` (all accessible) |
+| `require_admin()` | Requires `is_superuser` or `business:admin` permission |
+| `require_business_access()` | Checks `UserBusinessDB` membership; owner/admin bypass |
+| `get_current_api_key()` | Validates `X-API-Key` header (prefix: `cfood_`) |
 
-### Desktop App (JWT Login)
+## Multi-Tenant Auth (UserBusinessDB)
+
+- `UserBusinessDB` is the source of truth for user-to-business mappings
+- `UserDB.business_id` column has been **removed** — all business access is resolved via `UserBusinessDB`
+- Roles are stored per-business in `UserBusinessDB.role` (STAFF/OWNER/ADMIN)
+- Realtime/Centrifugo token requests check against the full `business_ids` list
+
+## Desktop App (JWT Login)
 
 | Feature | Implementation |
 |---------|---------------|
@@ -33,7 +45,7 @@ description: Current and planned authentication architecture.
 | Business context | From JWT claims (`business_id`) |
 | Realtime token | Separate JWT via POST /api/v1/realtime/token |
 
-### Desktop App (Device + PIN Login)
+## Desktop App (Device + PIN Login)
 
 | Feature | Implementation |
 |---------|---------------|
@@ -45,35 +57,17 @@ description: Current and planned authentication architecture.
 
 See [Device Authentication guide](/guides/device-authentication/) for the complete flow.
 
-### Web Dashboard
+## Web Dashboard (Logto OIDC)
 
 | Feature | Implementation |
 |---------|---------------|
-| Auth library | NextAuth v5 beta |
-| Providers | Google, Microsoft Entra ID, Apple |
-| Strategy | JWT sessions (no DB sessions) |
-| Token exchange | Not yet wired to backend JWT |
+| Auth provider | Logto Cloud (OIDC) |
+| Frontend SDK | Logto React SDK (replaced NextAuth) |
+| Social login | Google, Microsoft, Apple via Logto |
+| Token exchange | `POST /auth/oidc/callback` exchanges Logto auth code for backend JWT |
+| Business selection | Post-login business picker from `GET /businesses/accessible` |
 
-## Target State: Logto Migration (Sprint 21 Phase 2)
-
-| Feature | Planned |
-|---------|---------|
-| IAM provider | Logto (replaces NextAuth + fastapi-users) |
-| Social login | Google, Apple via Logto |
-| Token format | OIDC tokens validated by backend |
-| Multi-business | UserBusinessDB with per-business roles |
-| Desktop | Logto SDK (replaces direct JWT login) |
-| Web | Logto SDK (replaces NextAuth) |
-
-### Migration Checklist
-
-- [ ] Set up Logto instance
-- [ ] Replace NextAuth with Logto SDK in web app
-- [ ] Update backend for OIDC token validation
-- [ ] Create UserBusinessDB sync endpoint
-- [ ] Handle Logto webhooks for user lifecycle
-- [ ] Migrate existing users
-- [ ] Update desktop app auth flow
+See [Logto Auth guide](/guides/logto-auth/) for setup details.
 
 ## JWT Token Configuration
 
@@ -81,8 +75,8 @@ All token lifetimes are configured in backend settings:
 
 | Setting | Purpose |
 |---------|---------|
-| `JWT_ACCESS_TOKEN_MINUTES` | Access token lifetime |
-| `JWT_REFRESH_TOKEN_DAYS` | Refresh token lifetime |
+| `JWT_ACCESS_TOKEN_MINUTES` | Access token lifetime (default: 30 min) |
+| `JWT_REFRESH_TOKEN_DAYS` | Refresh token lifetime (default: 30 days) |
 | `JWT_ALGORITHM` | Signing algorithm (HS256) |
 | `JWT_SECRET` | Token signing secret |
 
@@ -95,5 +89,3 @@ Desktop app fetches these settings from `/api/v1/realtime/status` for consistent
 | STAFF | PIN on paired device | Single business, desktop app |
 | OWNER | Email/OAuth or PIN | Multiple businesses, web + desktop |
 | ADMIN | Email/OAuth | All businesses, system settings |
-
-Roles are stored per-business in `UserBusinessDB.role`. Owners manage staff access and PIN assignment.

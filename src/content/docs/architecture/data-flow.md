@@ -27,20 +27,21 @@ Login form → POST /api/v1/auth/login → JWT (access + refresh)
     → Realtime token via POST /api/v1/realtime/token
 ```
 
-### Web Dashboard (Owner)
+### Desktop App (Device + PIN)
 ```
-OAuth button → NextAuth → Google/Microsoft/Apple
-    → JWT session (NextAuth)
-    → Backend token exchange (TODO: not yet wired)
-    → Business list via GET /api/v1/businesses/my
+Pairing code → POST /api/v1/auth/device/pair → device_token
+    → Staff enters PIN → POST /api/v1/auth/device/pin-login
+    → operator_session_token (8h JWT)
+    → Business context from device registration
 ```
 
-### Target State: Logto
+### Web Dashboard (Logto OIDC)
 ```
-OAuth → Logto SDK → OIDC tokens
-    → Backend validates OIDC token
-    → UserBusinessDB lookup → business list
-    → Per-business role (STAFF/OWNER/ADMIN)
+OAuth button → Logto SDK → Google/Microsoft/Apple
+    → Logto OIDC token
+    → POST /auth/oidc/callback → Backend JWT
+    → Business list via GET /api/v1/businesses/accessible
+    → Business selection → per-business context
 ```
 
 ## Real-time Event Flow
@@ -56,7 +57,7 @@ Backend service → HTTP API → Centrifugo server
 | `order.created` | Order service | Desktop (auto-print) |
 | `order.updated` | Order service | Desktop + Web |
 | `printer.status` | Printer service | Desktop |
-| `job.progress` | Temporal workflow | Web onboarding UI |
+| `job.progress` | Onboarding service | Web onboarding UI |
 
 ## Printer Data Flow
 

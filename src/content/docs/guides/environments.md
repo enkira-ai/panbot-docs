@@ -21,29 +21,47 @@ Staging and production share the same Azure PostgreSQL server but use separate d
 
 - Docker and Docker Compose
 - Python 3.13+ with [uv](https://docs.astral.sh/uv/)
-- Infisical CLI (`curl -1sLf 'https://dl.cloudsmith.io/public/infisical/infisical-cli/setup.deb.sh' | sudo -E bash && sudo apt-get install -y infisical`)
+- Infisical CLI:
+  ```bash
+  curl -1sLf 'https://dl.cloudsmith.io/public/infisical/infisical-cli/setup.deb.sh' | sudo -E bash
+  sudo apt-get install -y infisical
+  ```
 
 ### Quick Start
 
 ```bash
-# 1. Install dependencies
+# 1. Clone the repo and checkout the dev branch
+#    (main is not kept up to date — always use dev)
+git clone git@github.com:enkira-ai/panbot.git
+cd panbot
+git checkout dev
+git submodule update --init
+
+# 2. Install Python dependencies
 uv sync --extra scraper
 
-# 2. Create infisical.env with your credentials (get from team lead)
+# 3. Create infisical.env with your credentials (get from team lead)
 cat > infisical.env << 'EOF'
 INFISICAL_CLIENT_ID=<your-client-id>
 INFISICAL_CLIENT_SECRET=<your-client-secret>
 INFISICAL_PROJECT_ID=<your-project-id>
 EOF
 
-# 3. Pull dev secrets
+# 4. Pull dev secrets (also authenticates Docker to ghcr.io/enkira-ai)
 make sync-env                    # pulls dev secrets → .env
 
-# 4. Start everything (PostgreSQL, Redis, Centrifugo, API, Agent)
+# 5. Create dev.env symlink (required by docker-compose)
+ln -sf .env dev.env
+
+# 6. Start everything (PostgreSQL, Redis, Centrifugo, API, Agent)
 make dev
 ```
 
 `make dev` starts Docker infrastructure (PostgreSQL, Redis, Centrifugo) and application services (API on `:8000`, telephony agent) with colored log output.
+
+:::note
+**Always work on the `dev` branch.** The `main` branch is not actively maintained and will be missing recent Makefile targets, migrations, and code changes.
+:::
 
 ### Local Infrastructure Services
 

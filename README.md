@@ -16,11 +16,15 @@ Hosted at **https://docs.panbot.ai** (password-protected).
 │           ├── guides/
 │           └── reference/
 ├── astro.config.mjs        # Astro + Starlight config
-├── docker-compose.yml      # Self-hosted setup (nginx + Astro dev)
-├── Dockerfile              # Astro dev server container
-├── Dockerfile.proxy        # nginx auth proxy container
-├── nginx.conf              # Reverse proxy + basic auth config
-├── proxy-entrypoint.sh     # Generates htpasswd from env vars
+├── Dockerfile              # Astro dev server (local Docker Compose)
+├── Dockerfile.azure        # Production build for Azure Container Apps
+├── Dockerfile.auth         # Cookie session auth service
+├── Dockerfile.proxy        # nginx reverse proxy (local Docker Compose)
+├── docker-compose.yml      # Local dev setup
+├── nginx.conf              # nginx config (local, uses auth_request)
+├── nginx.azure.conf        # nginx config (Azure, serves static files)
+├── auth_service.py         # Python cookie auth service
+├── supervisord.conf        # Process manager for Azure container
 └── .env                    # Credentials (not committed)
 ```
 
@@ -33,85 +37,104 @@ npm run build           # Production build to ./dist/
 npm run preview         # Preview production build
 ```
 
-## Self-Hosted Setup (docs.panbot.ai)
+## Production Deployment (Azure Container Apps)
 
-The docs site runs on an EC2 instance via Docker Compose with two containers:
-
-| Container | Role | Port |
-|-----------|------|------|
-| `docs` | Astro dev server with hot reload | 4321 (internal) |
-| `proxy` | nginx reverse proxy with basic auth | 80 + 3001 (exposed) |
+The docs site runs on **Azure Container Apps** as a single serverless container.
+It scales to 0 replicas when idle (no traffic = no cost).
 
 ### Architecture
 
 ```
-Browser → Cloudflare (HTTPS) → EC2:80 → nginx (basic auth) → Astro dev :4321
+Browser → Cloudflare (HTTPS, proxied) → Azure Container Apps
+            └── panbot-docs container
+                  ├── nginx (port 80) — serves static files + auth_request
+                  └── auth_service.py (port 4322) — cookie session auth
 ```
 
-- **Cloudflare** handles DNS and HTTPS termination (A record, proxied)
-- **nginx** enforces basic auth and proxies to the Astro dev server
-- **Astro** runs in dev mode with volume-mounted source for hot reload
-- **Docker** `restart: unless-stopped` ensures persistence across VM reboots
+- **Cloudflare** handles DNS and HTTPS proxying (`CNAME docs → ACA FQDN`)
+- **Azure Container Apps** provides managed TLS, auto-scaling (min 0, max 2)
+- **nginx** validates session cookies via `auth_request`, serves static Astro build
+- **auth_service.py** issues 7-day session cookies on correct password
+
+### Azure Resources
+
+| Resource | Value |
+|----------|-------|
+| Container App | `panbot-docs` |
+| Resource Group | `novaserve-ai` |
+| Environment | `panbot-prod-envvars` (Central US) |
+| Image | `ghcr.io/enkira-ai/panbot-docs:prod` |
+| Default URL | `panbot-docs.purplebush-3b410248.centralus.azurecontainerapps.io` |
+| Custom Domain | `docs.panbot.ai` |
+| SSL | Azure Managed Certificate (auto-renew) |
 
 ### DNS (Cloudflare)
 
 | Type | Name | Content | Proxy |
 |------|------|---------|-------|
-| A | `docs` | EC2 public IP | Proxied (orange cloud) |
+| `CNAME` | `docs` | `panbot-docs.purplebush-3b410248.centralus.azurecontainerapps.io` | Proxied ✅ |
+| `TXT` | `asuid.docs` | Azure domain verification token | DNS only |
 
-### EC2 Security Group
+### Deploying / Updating
 
-Inbound rule required on the instance security group:
+```bash
+# 1. Build and push new image
+cd docs/
+docker build -f Dockerfile.azure \
+  --build-arg SITE_URL=https://docs.panbot.ai \
+  -t ghcr.io/enkira-ai/panbot-docs:prod .
+docker push ghcr.io/enkira-ai/panbot-docs:prod
 
-| Type | Port | Source |
-|------|------|--------|
-| HTTP | 80 | `0.0.0.0/0` |
+# 2. Update the Container App
+source ../.env   # load AZURE_* vars
+az login --service-principal \
+  -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
+az containerapp update \
+  --name panbot-docs \
+  --resource-group novaserve-ai \
+  --image ghcr.io/enkira-ai/panbot-docs:prod
+```
 
 ### Managing the Service
 
 ```bash
-cd /home/ubuntu/projects/panbot/docs
-
-# Start / rebuild
-docker compose up -d --build
-
-# Stop
-docker compose down
-
 # View logs
-docker compose logs -f
-docker compose logs proxy --tail=50
+az containerapp logs show --name panbot-docs --resource-group novaserve-ai --tail 50
 
-# Restart after config change
-docker compose restart docs
+# Check status
+az containerapp show --name panbot-docs --resource-group novaserve-ai \
+  --query "{status:properties.provisioningState,url:properties.configuration.ingress.fqdn}" -o table
+
+# Scale to 0 (stop, no charges)
+az containerapp update --name panbot-docs --resource-group novaserve-ai \
+  --min-replicas 0 --max-replicas 0
+
+# Restore
+az containerapp update --name panbot-docs --resource-group novaserve-ai \
+  --min-replicas 0 --max-replicas 2
 ```
 
 ### Changing the Password
 
-Edit `.env`:
-
-```
-DOCS_USER=panbot
-DOCS_PASSWORD=your-password
-```
-
-Then restart the proxy:
+The password is stored as env var `DOCS_PASSWORD` in the Container App.
+Get/set it via Infisical (add to prod environment) then update the app:
 
 ```bash
-docker compose up -d --build proxy
+az containerapp update \
+  --name panbot-docs \
+  --resource-group novaserve-ai \
+  --set-env-vars "DOCS_PASSWORD=<new-password>"
 ```
 
-### Configuration
+---
 
-The `astro.config.mjs` reads env vars for deployment flexibility:
+## Legacy: EC2 Setup (decommissioned 2026-03-16)
 
-| Env Var | Docker value | Default (GitHub Pages) |
-|---------|-------------|----------------------|
-| `SITE_URL` | `https://docs.panbot.ai` | `https://stellarchiron.github.io` |
-| `BASE_PATH` | `/` | `/panbot-docs/` |
+Previously hosted on AWS EC2 (`aegis`, `ec2-13-58-176-229.us-east-2.compute.amazonaws.com`)
+via Docker Compose with nginx basic auth. Migrated to Azure Container Apps for cost savings
+(EC2 always-on vs ACA scale-to-zero).
 
-The `vite.server.allowedHosts` setting includes `docs.panbot.ai` to allow proxied requests.
-
-### Files Not Committed
-
-- `.env` — contains `DOCS_USER` and `DOCS_PASSWORD`
+The old EC2 Docker containers (`docs-docs-1`, `docs-auth-1`, `docs-proxy-1`) can be stopped:
+```bash
+ssh aegis "cd /home/ubuntu/projects/panbot/docs && docker compose down"
+```

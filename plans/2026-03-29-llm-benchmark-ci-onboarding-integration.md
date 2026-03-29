@@ -3,7 +3,9 @@
 **Status:** Draft — needs team discussion  
 **Author:** Developer  
 **Date:** 2026-03-29  
-**Related:** Issue #215, Issue #193
+**Related:** Issue #215, Issue #193  
+**Google Drive:** https://drive.google.com/file/d/1lkSvJdOWeJPhCZoICsuEf46Yix4CemUa/view?usp=drivesdk  
+_(Shared with wenboown, bilal.erhan, wangchen615 — comment in Drive, link will be updated once reviewed)_
 
 ---
 

@@ -4,8 +4,8 @@
 **Author:** Developer  
 **Date:** 2026-03-29  
 **Related:** Issue #215, Issue #193  
-**Google Drive:** https://drive.google.com/file/d/1lkSvJdOWeJPhCZoICsuEf46Yix4CemUa/view?usp=drivesdk  
-_(Shared with wenboown, bilal.erhan, wangchen615 — comment in Drive, link will be updated once reviewed)_
+**Google Doc:** https://docs.google.com/document/d/1JgYOaFg0d_rCpjIQ-Ij5vEkmqMlxK0AcnToFk5f-I_I/edit?usp=drivesdk  
+_(Shared with wenboown, bilal.erhan, wangchen615 — please comment in the Google Doc, will sync back once reviewed)_
 
 ---
 

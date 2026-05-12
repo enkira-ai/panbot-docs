@@ -143,7 +143,7 @@ make azure-deploy tenant=prod    # Deploy to production
 
 ### Database Backups
 
-Production database is backed up daily at 2 AM UTC via GitHub Actions (`.github/workflows/db-backup.yml`). Backups are stored in Azure Blob Storage (`panbotstorage/db-backups`).
+Production database is backed up daily at 2 AM UTC via GitHub Actions (`.github/workflows/db-backup.yml`). Backups are stored in Azure Blob Storage. The default location is `panbotmsconfig/db-backups`, and can be overridden with `DB_BACKUP_STORAGE_ACCOUNT`, `DB_BACKUP_CONTAINER`, `DB_BACKUP_RESOURCE_GROUP`, `DB_BACKUP_SUBSCRIPTION_ID`, and `DB_BACKUP_TENANT_ID`.
 
 ```bash
 make db-backup                   # Manual backup + upload to Azure Blob

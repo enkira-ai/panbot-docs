@@ -1,0 +1,30 @@
+# Stage 1: Build Astro static site
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm ci
+COPY . .
+ARG SITE_URL=https://docs.panbot.ai
+ARG BASE_PATH=/
+ENV SITE_URL=${SITE_URL}
+ENV BASE_PATH=${BASE_PATH}
+RUN npm run build
+
+# Stage 2: Production — nginx (static) + Python auth service + supervisord
+FROM nginx:alpine
+RUN apk add --no-cache python3 supervisor
+
+# Static site
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# nginx config (serves static files + auth_request)
+COPY nginx.azure.conf /etc/nginx/conf.d/default.conf
+
+# Cookie auth service
+COPY auth_service.py /auth/auth_service.py
+
+# supervisord config
+COPY supervisord.conf /etc/supervisord.conf
+
+EXPOSE 80
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

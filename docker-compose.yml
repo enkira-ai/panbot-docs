@@ -14,6 +14,17 @@ services:
       - "4321"
     restart: unless-stopped
 
+  auth:
+    build:
+      context: .
+      dockerfile: Dockerfile.auth
+    environment:
+      - DOCS_PASSWORD=${DOCS_PASSWORD}
+      - AUTH_PORT=4322
+    expose:
+      - "4322"
+    restart: unless-stopped
+
   proxy:
     build:
       context: .
@@ -25,4 +36,5 @@ services:
       - .env
     depends_on:
       - docs
+      - auth
     restart: unless-stopped

@@ -14,7 +14,7 @@ hero:
       variant: minimal
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
+import { LinkCard, CardGrid } from '@astrojs/starlight/components';
 
 ## New Here?
 
@@ -30,15 +30,21 @@ Also see `ONBOARDING.md` in the repo root for a quick-reference cheat sheet.
 ## Documentation Sections
 
 <CardGrid stagger>
-	<Card title="Architecture" icon="setting">
-		System overview, data flows, multi-tenancy design, and integration plans.
-	</Card>
-	<Card title="Guides" icon="open-book">
-		Development setup, deployment, CI/CD, real-time integration, printer system, telephony agent, auth, and testing.
-	</Card>
-	<Card title="Reference" icon="document">
-		Architecture design document and authentication system reference.
-	</Card>
+	<LinkCard
+		title="Architecture"
+		href="./architecture/overview/"
+		description="System overview, data flows, multi-tenancy design, and integration plans."
+	/>
+	<LinkCard
+		title="Guides"
+		href="./guides/environments/"
+		description="Development setup, deployment, CI/CD, real-time integration, printer system, telephony agent, auth, and testing."
+	/>
+	<LinkCard
+		title="Reference"
+		href="./reference/auth-system/"
+		description="Architecture design document and authentication system reference."
+	/>
 </CardGrid>
 
 ## Quick Links

@@ -28,7 +28,10 @@ Consolidate fragmented architecture documentation into a single, cohesive source
 - **Printer System**: Cloud-to-Local bridge.
 
 ## Proposed Action Plan
-1. **Inventory**: Gather `ARCHITECTURE.md` from `panbot`, `panbot-web`, and `panbot-docs/plans`.
+1. **Inventory**: Gather maintained `ARCHITECTURE.md` sources from `panbot`, `panbot-web`, and
+   this documentation site.
 2. **Standardization**: Use consistent Mermaid diagrams and markdown headers.
-3. **Migration**: Move technical details from `plans/` into `src/content/docs/architecture/`.
+3. **Migration**: Promote validated technical details from current code and accepted decisions
+   into `src/content/docs/architecture/`; archived plans are historical evidence, not a source of
+   truth.
 4. **Maintenance**: Establish a "docs-first" rule for new architecture changes.

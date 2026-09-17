@@ -8,7 +8,10 @@ on:
 
 jobs:
   assign:
-    runs-on: ${{ vars.USE_SELF_HOSTED == 'true' && 'enkira-ci-runner' || 'ubuntu-latest' }}
+    # hosted-runner: this repository is public — GitHub-hosted minutes are free for
+    # public repositories, and the org's ARC runner group does not admit them
+    # (allows_public_repositories=false), so a self-hosted label queues forever.
+    runs-on: ubuntu-latest
     steps:
       - name: Assign Ops/Infra Issues to Aegis
         if: |
